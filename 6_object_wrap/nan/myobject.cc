@@ -1,4 +1,5 @@
 #include "myobject.h"
+using v8::Isolate;
 
 Nan::Persistent<v8::Function> MyObject::constructor;
 
@@ -7,8 +8,9 @@ MyObject::MyObject(double value) : value_(value) {}
 MyObject::~MyObject() {}
 
 void MyObject::Init(v8::Local<v8::Object> exports) {
-  v8::Local<v8::Context> context =
-      exports->GetCreationContext().ToLocalChecked();
+   Isolate* isolate = exports->GetIsolate();
+  v8::Local<v8::Context> context = isolate->GetCurrentContext();
+     // exports->GetCreationContext().ToLocalChecked();
   Nan::HandleScope scope;
 
   // Prepare constructor template

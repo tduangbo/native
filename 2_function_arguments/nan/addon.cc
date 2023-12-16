@@ -1,33 +1,56 @@
-#include <nan.h>
+// addon.cc
+#include <node.h>
 
-void Add(const Nan::FunctionCallbackInfo<v8::Value>& info) {
-  v8::Local<v8::Context> context = info.GetIsolate()->GetCurrentContext();
+namespace demo {
 
-  if (info.Length() < 2) {
-    Nan::ThrowTypeError("Wrong number of arguments");
+using v8::Exception;
+using v8::FunctionCallbackInfo;
+using v8::Isolate;
+using v8::Local;
+using v8::Number;
+using v8::Object;
+using v8::String;
+using v8::Value;
+
+// This is the implementation of the "add" method
+// Input arguments are passed using the
+// const FunctionCallbackInfo<Value>& args struct
+void Add(const FunctionCallbackInfo<Value>& args) {
+  Isolate* isolate = args.GetIsolate();
+
+  // Check the number of arguments passed.
+  if (args.Length() < 2) {
+    // Throw an Error that is passed back to JavaScript
+    isolate->ThrowException(Exception::TypeError(
+        String::NewFromUtf8(isolate,
+                            "Wrong number of arguments").ToLocalChecked()));
     return;
   }
 
-  if (!info[0]->IsNumber() || !info[1]->IsNumber()) {
-    Nan::ThrowTypeError("Wrong arguments");
+  // Check the argument types
+  if (!args[0]->IsNumber() || !args[1]->IsNumber()) {
+    isolate->ThrowException(Exception::TypeError(
+        String::NewFromUtf8(isolate,
+                            "Wrong arguments").ToLocalChecked()));
     return;
   }
 
-  double arg0 = info[0]->NumberValue(context).FromJust();
-  double arg1 = info[1]->NumberValue(context).FromJust();
-  v8::Local<v8::Number> num = Nan::New(arg0 + arg1);
+  // Perform the operation
+  // double value =
+  //     args[0].As<Number>()->Value() + args[1].As<Number>()->Value();
+        double value = 100*100;
+      
+  Local<Number> num = Number::New(isolate, value);
 
-  info.GetReturnValue().Set(num);
+  // Set the return value (using the passed in
+  // FunctionCallbackInfo<Value>&)
+  args.GetReturnValue().Set(num);
 }
 
-void Init(v8::Local<v8::Object> exports) {
-  v8::Local<v8::Context> context =
-      exports->GetCreationContext().ToLocalChecked();
-  exports->Set(context,
-               Nan::New("add").ToLocalChecked(),
-               Nan::New<v8::FunctionTemplate>(Add)
-                   ->GetFunction(context)
-                   .ToLocalChecked());
+void Init(Local<Object> exports) {
+  NODE_SET_METHOD(exports, "add", Add);
 }
 
-NODE_MODULE(addon, Init)
+NODE_MODULE(NODE_GYP_MODULE_NAME, Init)
+
+}  // namespace demo
